@@ -11,28 +11,29 @@ const CartSingleItem = ({
 }) => {
   const [priceAmount, setPriceAmount] = useState("");
 
-  // ✅ Safe fallbacks for Firebase data
   const gallery = singleProduct?.gallery?.length
     ? singleProduct.gallery
     : [singleProduct?.image || ""];
   const brand = singleProduct?.brand || "Brand";
   const attributes = singleProduct?.attributes || [];
   const prices = singleProduct?.prices || [];
-  const basePrice = singleProduct?.price || 0;
+
+  // Convert price safely
+  const basePrice = Number(singleProduct?.price) || 0;
 
   useEffect(() => {
-    // ✅ Handle both old (GraphQL) and Firebase price structures
     if (prices.length > 0) {
       const targetCurrency = prices.find(
         (p) => p.currency?.symbol === selectedCurrency
       );
       if (targetCurrency) {
-        setPriceAmount(targetCurrency.amount.toFixed(2));
+        setPriceAmount(Number(targetCurrency.amount).toFixed(2));
+        return;
       }
-    } else {
-      // fallback for Firebase (flat price field)
-      setPriceAmount(basePrice.toFixed(2));
     }
+
+    // fallback
+    setPriceAmount(Number(basePrice).toFixed(2));
   }, [selectedCurrency, prices, basePrice]);
 
   return (
@@ -68,7 +69,6 @@ const CartSingleItem = ({
           singleProduct={singleProduct}
         />
 
-        {/* ✅ Safe check for gallery existence */}
         {gallery.length > 0 && (
           <SimpleImageSlider
             className="image-slider"
